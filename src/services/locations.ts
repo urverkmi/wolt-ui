@@ -21,9 +21,9 @@ export async function fetchFoodLocations(
   // 2. Fetch restaurant details for each dish
   // Example: nicely spread positions on the map (tune as you like)
   const PRESET_MAP_POSITIONS: { top: string; left: string }[] = [
-      { top: '22%', left: '18%' },
-      { top: '30%', left: '42%' },
-      { top: '38%', left: '65%' },
+      { top: '22%', left: '13%' },
+      { top: '30%', left: '22%' },
+      { top: '48%', left: '65%' },
       { top: '46%', left: '28%' },
       { top: '52%', left: '55%' },
       { top: '26%', left: '75%' },

@@ -1,24 +1,24 @@
 import { useState } from 'react';
-import { Home, Map, Award, User, TrendingUp } from 'lucide-react';
+import { Home, Map, User } from 'lucide-react';
 import { HomePage } from './components/HomePage';
 import { CityView } from './components/CityView';
 import { ProfileView } from './components/ProfileView';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('city');
+  const [activeTab, setActiveTab] = useState<'home' | 'city' | 'profile'>('city');
 
   return (
-    <div className="min-h-screen bg-white text-[#141414]">
-      {/* Main Content */}
-      <div className="pb-20 relative z-10">
+    <div className="fixed inset-0 flex flex-col bg-white">
+      {/* Main Content Area (fills space above nav) */}
+      <div className="relative flex-1">
         {activeTab === 'home' && <HomePage onNavigate={setActiveTab} />}
         {activeTab === 'city' && <CityView />}
         {activeTab === 'profile' && <ProfileView />}
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30">
-        <div className="flex justify-around items-center h-16 max-w-screen-xl mx-auto px-4">
+      <nav className="h-16 bg-white border-t border-gray-200 z-30">
+        <div className="flex justify-around items-center h-full max-w-screen-xl mx-auto px-4">
           <button
             onClick={() => setActiveTab('home')}
             className={`flex flex-col items-center justify-center space-y-1 ${
@@ -28,6 +28,7 @@ export default function App() {
             <Home className="w-6 h-6" />
             <span className="text-xs">Home</span>
           </button>
+
           <button
             onClick={() => setActiveTab('city')}
             className={`flex flex-col items-center justify-center space-y-1 ${
@@ -37,6 +38,7 @@ export default function App() {
             <Map className="w-6 h-6" />
             <span className="text-xs">City</span>
           </button>
+
           <button
             onClick={() => setActiveTab('profile')}
             className={`flex flex-col items-center justify-center space-y-1 ${
