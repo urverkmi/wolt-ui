@@ -16,12 +16,13 @@ export interface Dish {
     name: string;
     lat: number;
     lon: number;
+    type: string;
   }
 
   export interface FoodLocation {
     id: number;
     name: string;
-    type: PlaceType;
+    type: string;
     lat: number;
     lng: number;
     photo: string;
@@ -29,6 +30,17 @@ export interface Dish {
     tags?: string[];
     cuisine?: string;
     visitCount?: number;
+    mapPosition;
+    dishes?: string[];
+  }
+
+  export interface Quest {
+    id: number;
+    title: string;
+    progress?: number;
+    total?: number;
+    reward: string;
+    targetLocations?: number[];
   }
 
   export type PlaceType = "restaurant" | "cafe" | "bar" | "store";

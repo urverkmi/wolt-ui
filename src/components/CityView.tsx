@@ -3,18 +3,23 @@ import { MapPin, Coffee, UtensilsCrossed, ShoppingBag, Camera, Share2, Award, Sp
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { NewQuestModal } from './NewQuestModal';
 import { OrderConfirmation } from './OrderConfirmation';
-import { FoodLocation, PlaceType } from '../types.ts'
+import { FoodLocation, PlaceType, Quest } from '../types.ts'
 import { fetchFoodLocations } from "../services/locations";
+import { WrappedModal } from './WrappedModal.tsx';
 
 import mapImage from '../assets/map.png';
 import cafeIcon from '../assets/cafe.png';
 import restaurantIcon from '../assets/restaurant.png';
+import burgerIcon from '../assets/burger.png';
+import starbucksIcon from '../assets/starbucks.png';
 import badgeIcon from '../assets/badge.png';
 
 
 const iconMap: Record<string, string> = {
   restaurant: restaurantIcon,
-  cafe: cafeIcon
+  cafe: cafeIcon,
+  burger: burgerIcon,
+  starbucks: starbucksIcon
 };
 
 
@@ -28,7 +33,7 @@ export function CityView() {
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [orderLocation, setOrderLocation] = useState<FoodLocation | null>(null);
 
-  const cityName = 'New York';
+  const cityName = 'Espoo';
   
   // fetching restaurants
   const [foodLocations, setLocations] = useState<FoodLocation[]>([]);
@@ -40,30 +45,44 @@ export function CityView() {
       .catch(err => console.error(err));
   }, []);
 
-  const activeQuests = [
-    {
-      id: 1,
-      title: 'Try a Locally-Owned Business',
-      progress: 0,
-      total: 1,
-      reward: '15% off',
-      targetLocations: [1, 2],
-    },
-    {
-      id: 2,
-      title: 'Visit 3 Pet-Friendly Cafes',
-      progress: 1,
-      total: 3,
-      reward: '$10 coupon',
-      targetLocations: [2],
-    },
+  const rewardOptions = [
+    "15% off",
+    "$10 coupon",
+    "Free dessert",
+    "20% off",
   ];
+  
+  let nextQuestId = 1;
+  
+  const quests: Quest[] = [];
+  
+  for (const loc of foodLocations) {
+    // make sure dishes exists / is non-empty
+    if (!loc.dishes || loc.dishes.length === 0) continue;
+  
+    for (const dishName of loc.dishes) {
+      const reward =
+        rewardOptions[(nextQuestId - 1) % rewardOptions.length];
+  
+      const quest: Quest = {
+        id: nextQuestId, // consecutive ids
+        title: `Order ${dishName} from ${loc.name}`,
+        progress: 0,
+        total: 1,
+        reward,
+        targetLocations: [loc.id], // this quest targets this restaurant
+      };
+  
+      quests.push(quest);
+      nextQuestId++;
+    }
+  }
 
   const visitedLocations = foodLocations.filter(loc => loc.visited);
   
-  const questTargetLocations = highlightedQuestId 
+  const questTargetLocations = highlightedQuestId && quests
     ? foodLocations.filter(loc => 
-        activeQuests.find(q => q.id === highlightedQuestId)?.targetLocations.includes(loc.id)
+      quests.find(q => q.id === highlightedQuestId)?.targetLocations.includes(loc.id)
       )
     : [];
   
@@ -74,8 +93,6 @@ export function CityView() {
     ),
     ...foodLocations
   ];
-
-  console.log(displayedLocations);
 
   const toggleType = (type: PlaceType) => {
     if (selectedTypes.includes(type)) {
@@ -288,7 +305,7 @@ export function CityView() {
                   className="w-[39px] h-[39px] ml-[10px]"
                 />
                 <span className="text-[20px] text-black font-bold">
-                  Active Quests ({activeQuests.length})
+                  Active Quests ({quests.length})
                 </span>
               </div>
               <button
@@ -315,7 +332,7 @@ export function CityView() {
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">
-                Active Quests ({activeQuests.length})
+                Active Quests ({quests.length})
               </h2>
               <button onClick={() => setExpandedSection(null)}>
                 <ChevronUp className="w-6 h-6" />
@@ -323,7 +340,7 @@ export function CityView() {
             </div>
 
             <div className="space-y-3">
-              {activeQuests.map((quest) => {
+              {quests.map((quest) => {
                 return (
                   <div
                     key={quest.id}
@@ -360,12 +377,10 @@ export function CityView() {
                       className={`w-full py-2 px-4 rounded-lg text-sm transition-colors ${
                         highlightedQuestId === quest.id
                           ? 'bg-[#009de0] text-white'
-                          : 'bg-white text-[#009de0] border border-[#009de0]'
+                          : 'bg-[#009de0] text-white border border-[#009de0] '
                       }`}
                     >
-                      {highlightedQuestId === quest.id
-                        ? 'Hide on Map'
-                        : 'Show Qualified Places on Map'}
+                      {'Order'}
                     </button>
                   </div>
                 );
@@ -501,7 +516,7 @@ export function CityView() {
 
       {/* Wrapped Modal */}
       {showWrapped && (
-        <div className="fixed inset-0 bg-gradient-to-b from-[#009de0] to-[#141414] z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
           <div className="min-h-screen p-6 flex flex-col">
             <button
               onClick={() => setShowWrapped(false)}
@@ -512,16 +527,16 @@ export function CityView() {
 
             <div className="flex-1 flex flex-col justify-center space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-4xl mb-2 text-white">
-                  Your {cityName}
+                <h1 className="text-4xl mb-2 text-black">
+                  Your {cityName} Wrapped
                 </h1>
-                <p className="text-2xl text-gray-200">Food Wrapped 🐺</p>
               </div>
 
               <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-xl space-y-6">
                 <div className="text-center">
                   <div className="text-7xl mb-2 text-[#141414]">
-                    {wrappedStats.totalVisits}
+                    {/* {wrappedStats.totalVisits} */}
+                    2
                   </div>
                   <div className="text-xl text-gray-600">Places Explored</div>
                 </div>
@@ -541,8 +556,13 @@ export function CityView() {
                 </div>
 
                 <div className="h-px bg-gray-200" />
+                <div className="text-center bg-gray-50 rounded-xl p-4">
+                    <Award className="w-8 h-8 mx-auto mb-2 text-[#009de0]" />
+                    <div className="text-2xl mb-1 text-[#141414]">8</div>
+                    <div className="text-xs text-gray-600">Quests Done</div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* <div className="grid grid-cols-2 gap-4">
                   <div className="text-center bg-gray-50 rounded-xl p-4">
                     <Camera className="w-8 h-8 mx-auto mb-2 text-[#009de0]" />
                     <div className="text-2xl mb-1 text-[#141414]">
@@ -555,12 +575,12 @@ export function CityView() {
                     <div className="text-2xl mb-1 text-[#141414]">8</div>
                     <div className="text-xs text-gray-600">Quests Done</div>
                   </div>
-                </div>
+                </div> */}
               </div>
 
-              <button className="w-full bg-white text-[#141414] py-4 rounded-xl flex items-center justify-center space-x-2 text-lg shadow-lg">
+              <button className="w-full bg-[#009de0] text-white py-4 rounded-xl flex items-center justify-center space-x-2 text-lg shadow-lg">
                 <Share2 className="w-5 h-5" />
-                <span>Share to Social Media</span>
+                <span>Share to Instagram</span>
               </button>
             </div>
           </div>
